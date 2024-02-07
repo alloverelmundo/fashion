@@ -1,6 +1,4 @@
-#insert code here
-
-#CLEAING DATA
+#Step 1 - cleaning data
 import pandas as pd
 
 # Load the dataset
@@ -39,7 +37,7 @@ df['language'] = df['language'].str.lower()
 print("\nCleaned Dataset:")
 print(df)
 
-#Price Analysis 
+#Step 2 - Price Analysis 
 
 #Calculate average selling price and original price across different categories
 price_analysis = df.groupby('category').agg(
@@ -55,3 +53,48 @@ print(price_analysis)
 
 #INSERT HERE
 
+#Step 3 - Availability Analysis
+
+# Calculate the percentage of products in stock versus out-of-stock
+availability_analysis = df['availability'].value_counts(normalize=True) * 100
+
+# Print the availability analysis
+print("Availability Analysis:")
+print(availability_analysis)
+
+#Step 4 - Rating and Reviews Analysis
+# Calculate the average rating and total number of reviews for products in each category
+rating_reviews_analysis = df.groupby('category').agg(
+    avg_rating=('average_rating', 'mean'),
+    total_reviews=('reviews_count', 'sum')
+).reset_index()
+
+# Print the rating and reviews analysis
+print("\nRating and Reviews Analysis:")
+print(rating_reviews_analysis)
+
+#Step 5 - Categorical Analysis
+# Analyze the distribution of products across different categories, colors, or sources
+categorical_analysis = df.groupby(['category', 'color', 'source']).size().reset_index(name='count')
+
+# Print the categorical analysis
+print("\nCategorical Analysis:")
+print(categorical_analysis)
+
+#Step 6 - Brand Analysis
+# Investigate the market share of different brands based on the number of products or total sales
+brand_analysis = df['brand'].value_counts(normalize=True) * 100
+
+# Print the brand analysis
+print("Brand Analysis:")
+print(brand_analysis)
+
+# Calculate the average selling price and rating among different brands
+brand_price_rating_analysis = df.groupby('brand').agg(
+    avg_selling_price=('selling_price', 'mean'),
+    avg_rating=('average_rating', 'mean')
+).reset_index()
+
+# Print the brand price and rating analysis
+print("\nBrand Price and Rating Analysis:")
+print(brand_price_rating_analysis)
