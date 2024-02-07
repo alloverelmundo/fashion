@@ -39,7 +39,7 @@ print(df)
 
 #Step 2 - Price Analysis 
 
-#Calculate average selling price and original price across different categories
+#Calculate the average selling price and original price across different categories
 price_analysis = df.groupby('category').agg(
     avg_selling_price=('selling_price', 'mean'),
     avg_original_price=('original_price', 'mean')
@@ -98,3 +98,48 @@ brand_price_rating_analysis = df.groupby('brand').agg(
 # Print the brand price and rating analysis
 print("\nBrand Price and Rating Analysis:")
 print(brand_price_rating_analysis)
+
+#Step 7 - Text Analysis
+# Analyze product descriptions to identify common keywords or phrases
+# Counting the occurrence of each word in the descriptions
+word_counts = df['description'].str.split(expand=True).stack().value_counts()
+
+# Print the top 10 most common words in descriptions
+print("Top 10 most common words in descriptions:")
+print(word_counts.head(10))
+
+#Step 8 - Geographical Analysis
+# Explore regional differences in product preferences or pricing
+# Analyze how language influences product popularity or purchasing behavior
+country_analysis = df.groupby('country').agg(
+    total_products=('index', 'count'),
+    avg_selling_price=('selling_price', 'mean')
+).reset_index()
+
+language_analysis = df.groupby('language').agg(
+    total_products=('index', 'count'),
+    avg_selling_price=('selling_price', 'mean')
+).reset_index()
+
+# Print the country and language analysis
+print("\nCountry Analysis:")
+print(country_analysis)
+
+print("\nLanguage Analysis:")
+print(language_analysis)
+
+#Step 9 - Price Elasticity Analysis
+# Analyze how changes in selling prices or discounts affect sales volume or revenue
+# Assuming a basic price elasticity calculation
+# Price Elasticity = (% Change in Quantity Demanded) / (% Change in Price)
+initial_price = df['selling_price'].mean()
+initial_quantity = df['reviews_count'].mean()
+
+# Assuming a price decrease of 10%
+new_price = initial_price * 0.9
+new_quantity = df[df['selling_price'] <= new_price]['reviews_count'].mean()
+
+price_elasticity = (new_quantity - initial_quantity) / (new_price - initial_price)
+
+print("Price Elasticity:", price_elasticity)
+
