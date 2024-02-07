@@ -38,3 +38,20 @@ df['language'] = df['language'].str.lower()
 # Print the cleaned dataset
 print("\nCleaned Dataset:")
 print(df)
+
+#Price Analysis 
+
+#Calculate average selling price and original price across different categories
+price_analysis = df.groupby('category').agg(
+    avg_selling_price=('selling_price', 'mean'),
+    avg_original_price=('original_price', 'mean')
+).reset_index()
+
+# Print the price analysis
+print("Price Analysis:")
+print(price_analysis)
+
+#Price Analysis Findings
+
+#INSERT HERE
+
