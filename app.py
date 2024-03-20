@@ -1,46 +1,79 @@
-#Step 1 - cleaning data
+#The cleaned version of analyzing Adidas data. 
+#About this dataset
+#This dataset contains information on over 1500+ Adidas fashion products. 
+#The data includes fields such as name, selling price, original price, currency, availability, color, category, source website, breadcrumbs, description, brand, images, country, language, average rating and reviews count. 
+#This data was collected from a variety of sources and compiled into one dataset for research purposes.
+#This Adidas fashion dataset provides rich product information for over 9300+ products. 
+#It contains detailed information on product selling price, original price in multiple currencies ( USD / EUR / GBP ), product availability ( in stock / out of stock ), color , Category ( such as Apparel / Footwear ), source website , breadcrumbs , product description , brand name , link to product images , Country of origin and language . 
+#The average rating and reviews count are also included in the dataset so that researchers can study the correlation between them.
+
+#Research Ideas
+#This dataset can be used to determine which colors are most popular among different age groups or genders.
+#This dataset can be used to identify the most popular products among different countries or regions.
+#This dataset can be used to analyze the correlation between product reviews and ratings to determine which factors are most important to customers.
+
+#Column name:	Description
+#url:	The URL of the product page on the source website. (String)
+#name:	The name of the product. (String)
+#sku:	The SKU or unique identifier for the product. (String)
+#selling_price:	The selling price of the product in USD or Euros. (Float)
+#original_price:	The original price of the product in USD or Euros. (Float)
+#currency:	The currency type for the selling price and original price. (String)
+#availability:	The availability of the product. (String)
+#color:	The color of the product. (String)
+#category:	The category of the product. (String)
+#source_website:	The source website from where the data was collected. (String)
+#breadcrumbs:	The breadcrumbs or path to the product page on the source website. (String)
+#description:	A brief description of the product provided by Adidas. (String)
+#brand:	The brand of the product. (String)
+#images:	Multiple product images provided by Adidas. (String)
+#country:	The country of origin/destination for the product. (String)
+#language:	The language in which the product page was displayed on the source website. (String)
+#average_rating:	The average customer rating out of 5 stars. (Float)
+#reviews_count:	The number of customer reviews for the product. (Integer)
+#crawled_at:	The date and time when the data was collected. (String)
+
+#Step 1- data cleaning, importing packages, etc. 
+#importing all necessary packages for analysis and cleaning
+import numpy as np
 import pandas as pd
+import requests
+import matplotlib.pyplot as plt
+import scipy as sp 
+from matplotlib import pyplot as plt
+import scipy.stats as stats
+from sklearn.preprocessing import MinMaxScaler
+from scipy import stats
 
-# Load the dataset
-csv_file_path = '/Users/vk/Desktop/vscodepractice/fashionproject/adidas/adidas_usa.csv'
+#getting data from csv file and cleaning
+df_adidas = pd.read_csv('adidas_usa.csv')
 
-# Read CSV into a pandas DataFrame
-df = pd.read_csv(csv_file_path)
+#remove any rows with missing data
+df_adidas = df_adidas.dropna(axis=0, how='any')
 
-# Print the initial dataset
-print("Initial Dataset:")
-print(df)
+#changing the index numbers because they were off by 15
+df_adidas['index'] -= 15
 
-# Cleaning steps
-# Handling missing values
-df.fillna({'selling_price': 0, 'original_price': 0, 'average_rating': 0, 'reviews_count': 0}, inplace=True)
+#calculating the differences between sale price and original price and putting in new column
+#first converting to float value
+df_adidas['original_price'] = df_adidas['original_price'].str.replace('$','').astype(float)
+df_adidas['selling_price'] = pd.to_numeric(df_adidas['selling_price'])
+df_adidas['price_difference'] = df_adidas['original_price'] - df_adidas['selling_price']
 
-# Removing duplicates
-df.drop_duplicates(inplace=True)
+#dropping any duplicates
+df_adidas.drop_duplicates(inplace=True)
 
-# Correcting data types
-df['selling_price'] = df['selling_price'].astype(float)
-df['original_price'] = df['original_price'].astype(float)
-df['average_rating'] = df['average_rating'].astype(float)
-df['reviews_count'] = df['reviews_count'].astype(int)
+#converting other values 
+df_adidas['average_rating'] = df_adidas['average_rating'].astype(float)
+df_adidas['reviews_count'] = df_adidas['reviews_count'].astype(int)
 
-# Standardizing formats (e.g., lowercase)
-df['name'] = df['name'].str.lower()
-df['color'] = df['color'].str.lower()
-df['category'] = df['category'].str.lower()
-df['source'] = df['source'].str.lower()
-df['brand'] = df['brand'].str.lower()
-df['country'] = df['country'].str.upper()
-df['language'] = df['language'].str.lower()
-
-# Print the cleaned dataset
-print("\nCleaned Dataset:")
-print(df)
+#dropping irrelevant columns
+df_adidas= df_adidas.drop(columns=['currency', 'brand', 'country', 'language', 'crawled_at'])
 
 #Step 2 - Price Analysis 
 
 #Calculate the average selling price and original price across different categories
-price_analysis = df.groupby('category').agg(
+price_analysis = df_adidas.groupby('category').agg(
     avg_selling_price=('selling_price', 'mean'),
     avg_original_price=('original_price', 'mean')
 ).reset_index()
@@ -50,21 +83,25 @@ print("Price Analysis:")
 print(price_analysis)
 
 #Price Analysis Findings
-
-#INSERT HERE
+#The average selling price for Accessories is $29.38 and the average original price is $35.43.
+#The average selling price for Clothing is $38.73 and the average original price is $49.33.
+#The average selling price for Accessories is $68.90 and the average original price is $90.58.
 
 #Step 3 - Availability Analysis
 
 # Calculate the percentage of products in stock versus out-of-stock
-availability_analysis = df['availability'].value_counts(normalize=True) * 100
+availability_analysis = df_adidas['availability'].value_counts(normalize=True) * 100
 
 # Print the availability analysis
 print("Availability Analysis:")
 print(availability_analysis)
 
+#Availability Analysis Findings
+#Generally, the products were available 99.64% of the time.
+
 #Step 4 - Rating and Reviews Analysis
 # Calculate the average rating and total number of reviews for products in each category
-rating_reviews_analysis = df.groupby('category').agg(
+rating_reviews_analysis = df_adidas.groupby('category').agg(
     avg_rating=('average_rating', 'mean'),
     total_reviews=('reviews_count', 'sum')
 ).reset_index()
@@ -73,73 +110,26 @@ rating_reviews_analysis = df.groupby('category').agg(
 print("\nRating and Reviews Analysis:")
 print(rating_reviews_analysis)
 
+#Ratings and Reviews Analysis
+#Accessories have an average rating of 4.83, and total reviews of 3,997.
+#Clothing has an average rating of 4.64, and total reviews of 22,265.
+#Shoes have an average rating of 4.54, and total reviews of 333,477.
+
 #Step 5 - Categorical Analysis
 # Analyze the distribution of products across different categories, colors, or sources
-categorical_analysis = df.groupby(['category', 'color', 'source']).size().reset_index(name='count')
+categorical_analysis = df_adidas.groupby(['category', 'color', 'source']).size().reset_index(name='count')
 
 # Print the categorical analysis
 print("\nCategorical Analysis:")
 print(categorical_analysis)
 
-#Step 6 - Brand Analysis
-# Investigate the market share of different brands based on the number of products or total sales
-brand_analysis = df['brand'].value_counts(normalize=True) * 100
-
-# Print the brand analysis
-print("Brand Analysis:")
-print(brand_analysis)
-
-# Calculate the average selling price and rating among different brands
-brand_price_rating_analysis = df.groupby('brand').agg(
-    avg_selling_price=('selling_price', 'mean'),
-    avg_rating=('average_rating', 'mean')
-).reset_index()
-
-# Print the brand price and rating analysis
-print("\nBrand Price and Rating Analysis:")
-print(brand_price_rating_analysis)
-
-#Step 7 - Text Analysis
+#Step 6 - Text Analysis
 # Analyze product descriptions to identify common keywords or phrases
 # Counting the occurrence of each word in the descriptions
-word_counts = df['description'].str.split(expand=True).stack().value_counts()
+word_counts = df_adidas['description'].str.split(expand=True).stack().value_counts()
 
 # Print the top 10 most common words in descriptions
 print("Top 10 most common words in descriptions:")
 print(word_counts.head(10))
 
-#Step 8 - Geographical Analysis
-# Explore regional differences in product preferences or pricing
-# Analyze how language influences product popularity or purchasing behavior
-country_analysis = df.groupby('country').agg(
-    total_products=('index', 'count'),
-    avg_selling_price=('selling_price', 'mean')
-).reset_index()
-
-language_analysis = df.groupby('language').agg(
-    total_products=('index', 'count'),
-    avg_selling_price=('selling_price', 'mean')
-).reset_index()
-
-# Print the country and language analysis
-print("\nCountry Analysis:")
-print(country_analysis)
-
-print("\nLanguage Analysis:")
-print(language_analysis)
-
-#Step 9 - Price Elasticity Analysis
-# Analyze how changes in selling prices or discounts affect sales volume or revenue
-# Assuming a basic price elasticity calculation
-# Price Elasticity = (% Change in Quantity Demanded) / (% Change in Price)
-initial_price = df['selling_price'].mean()
-initial_quantity = df['reviews_count'].mean()
-
-# Assuming a price decrease of 10%
-new_price = initial_price * 0.9
-new_quantity = df[df['selling_price'] <= new_price]['reviews_count'].mean()
-
-price_elasticity = (new_quantity - initial_quantity) / (new_price - initial_price)
-
-print("Price Elasticity:", price_elasticity)
 
